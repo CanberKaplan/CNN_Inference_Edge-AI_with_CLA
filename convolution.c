@@ -193,57 +193,7 @@ void max_pooling(float* data, uint16_t in_h, uint16_t in_w, uint16_t num_filters
     }
 }
 
-//void max_pooling_inplace(int16_t* data, uint16_t input_dim, uint16_t num_filters) {
-//    uint16_t f, r, c, i, j;
-//    uint32_t write_idx = 0;
-//
-//    for (f = 0; f < num_filters; f++) {
-//        uint32_t filter_offset = f * (input_dim * input_dim);
-//        for (r = 0; r < input_dim; r += 2) {
-//            for (c = 0; c < input_dim; c += 2) {
-//                int16_t max_val = -32768;
-//
-//                for (i = 0; i < 2; i++) {
-//                    for (j = 0; j < 2; j++) {
-//                        int16_t val = data[filter_offset + (r + i) * input_dim + (c + j)];
-//                        if (val > max_val) {
-//                            max_val = val;
-//                        }
-//                    }
-//                }
-//                data[write_idx++] = max_val;
-//            }
-//        }
-//    }
-//}
 
-
-
-//void convolution_layer_2(const float* input, float* output, const float* filters, const float* bias) {
-//    uint16_t out_f, in_c, r, c, fi, fj;
-//    const uint16_t in_dim = 13;
-//    const uint16_t out_dim = 11;
-//
-//    for (out_f = 0; out_f < NUM_FILTERS; out_f++) {
-//        for (r = 0; r < out_dim; r++) {
-//            for (c = 0; c < out_dim; c++) {
-//                float sum = 0.0f;
-//
-//                for (in_c = 0; in_c < NUM_FILTERS; in_c++) {
-//                    uint32_t in_offset = in_c * (in_dim * in_dim);
-//                    uint32_t filter_offset = (out_f * NUM_FILTERS * 9) + (in_c * 9);
-//
-//                    for (fi = 0; fi < 3; fi++) {
-//                        for (fj = 0; fj < 3; fj++) {
-//                            sum += input[in_offset + (r + fi) * in_dim + (c + fj)] * filters[filter_offset + fi * 3 + fj];
-//                        }
-//                    }
-//                }
-//                output[out_f * (out_dim * out_dim) + r * out_dim + c] = sum + bias[out_f];
-//            }
-//        }
-//    }
-//}
 void convolution_2(const float* input, float* output, const float* filters, const float* bias, uint16_t in_h, uint16_t in_w)
 {
     uint16_t out_f, in_c, r, c, fi, fj;
@@ -281,72 +231,7 @@ void convolution_2(const float* input, float* output, const float* filters, cons
     }
 }
 
-//void convolution_layer_2(const int16_t* input, int16_t* output, const float* filters,
-//                         const float* bias, float input_scale, float output_scale) {
-//    uint16_t out_f, in_c, r, c, fi, fj;
-//    const uint16_t in_dim = 13;
-//    const uint16_t out_dim = 11;
-//    const uint16_t filter_sz = 3;
-//
-//    for (out_f = 0; out_f < 16; out_f++) {
-//        for (r = 0; r < out_dim; r++) {
-//            for (c = 0; c < out_dim; c++) {
-//                float sum = 0.0f;
-//
-//                for (in_c = 0; in_c < 16; in_c++) {
-//                    uint32_t in_offset = in_c * (in_dim * in_dim);
-//                    uint32_t filter_offset = (out_f * 16 * 9) + (in_c * 9);
-//
-//                    for (fi = 0; fi < filter_sz; fi++) {
-//                        for (fj = 0; fj < filter_sz; fj++) {
-//
-//                            float val = (float)input[in_offset + (r + fi) * in_dim + (c + fj)] * input_scale;
-//                            sum += val * filters[filter_offset + fi * filter_sz + fj];
-//                        }
-//                    }
-//                }
-//
-//
-//                float res = (sum + bias[out_f]) / output_scale;
-//
-//
-//                if (res > 127.0f) res = 127.0f;
-//                if (res < -128.0f) res = -128.0f;
-//
-//                output[out_f * (out_dim * out_dim) + r * out_dim + c] = (int16_t)res;
-//            }
-//        }
-//    }
-//}
 
-//void max_pooling_v2(float* input, float* output, uint16_t input_dim, uint16_t num_filters) {
-//    uint16_t f, r, c, i, j;
-//    uint16_t output_dim = input_dim / 2;
-//    uint32_t write_idx = 0;
-//
-//    for (f = 0; f < num_filters; f++) {
-//        uint32_t input_filter_offset = f * (input_dim * input_dim);
-//
-//        for (r = 0; r < output_dim; r++) {
-//            for (c = 0; c < output_dim; c++) {
-//                float max_val = -1e37f;
-//
-//                for (i = 0; i < 2; i++) {
-//                    for (j = 0; j < 2; j++) {
-//
-//                        uint32_t idx = input_filter_offset + ((r * 2) + i) * input_dim + ((c * 2) + j);
-//                        float val = input[idx];
-//                        if (val > max_val) {
-//                            max_val = val;
-//                        }
-//                    }
-//                }
-//
-//                output[write_idx++] = max_val;
-//            }
-//        }
-//    }
-//}
 void max_pooling_2(float* input, float* output, uint16_t in_h, uint16_t in_w, uint16_t num_filters)
 {
     uint16_t f, r, c, i, j;
@@ -383,34 +268,5 @@ void max_pooling_2(float* input, float* output, uint16_t in_h, uint16_t in_w, ui
     }
 }
 
-//void max_pooling_v2(int16_t* input, int16_t* output, uint16_t input_dim, uint16_t num_filters) {
-//    uint16_t f, r, c, i, j;
-//    uint16_t output_dim = input_dim / 2;
-//    uint32_t write_idx = 0;
-//
-//    for (f = 0; f < num_filters; f++) {
-//        uint32_t input_filter_offset = f * (input_dim * input_dim);
-//
-//        for (r = 0; r < output_dim; r++) {
-//            for (c = 0; c < output_dim; c++) {
-//
-//                int16_t max_val = -32768;
-//
-//                for (i = 0; i < 2; i++) {
-//                    for (j = 0; j < 2; j++) {
-//
-//                        uint32_t idx = input_filter_offset + ((r * 2) + i) * input_dim + ((c * 2) + j);
-//                        int16_t val = input[idx];
-//
-//                        if (val > max_val) {
-//                            max_val = val;
-//                        }
-//                    }
-//                }
-//
-//                output[write_idx++] = max_val;
-//            }
-//        }
-//    }
-//}
+
 

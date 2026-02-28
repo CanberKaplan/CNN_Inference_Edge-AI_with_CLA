@@ -189,133 +189,16 @@ int main(void)
     ERTM;  // Enable Global realtime interrupt DBGM
 
 
-//     for(i = 0; i < 10; i++)
-//     {
-//
-//         GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-//        for(j = 0; j < 400; j++)
-//        {
-//            weight[j] = weights_data[(i * 400) + j];
-//
-//
-//        }
-//        GpioDataRegs.GPASET.bit.GPIO18 = 1;
-//                CLA_runTest();
-//                output[i] = fResult;
-//        }
-//
-//        GpioDataRegs.GPASET.bit.GPIO18 = 1;
-//
-//        output[i] = fResult;
-
-//    for( i = 0; i < 10; i++)
-//    {
-//        GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-//
-//
-//        memcpy(&weight[0], &weights_data[i * 400], 400 * dataSize);
-//        asm(" RPT #2 || NOP");
-//
-//        GpioDataRegs.GPASET.bit.GPIO18 = 1;
-//
-//        CLA_runTest();
-//        output[i] = fResult;
-//
-//
-//
-//    }
-
-
-
-//    for(i = 0; i < 10; i++)
-//    {
-//        //GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-//
-//        cla_accumulated_sum = 0.0f;
-//        GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-//        memcpy(&weight[0], &weights_data[i * 400], sizePart1);
-//        GpioDataRegs.GPASET.bit.GPIO18 = 1;
-//        asm(" RPT #2 || NOP");
-//
-//
-//        cla_offset_param = 0;
-//        cla_count_param = 100;
-//
-//        Cla1ForceTask1();
-//
-//        GpioDataRegs.GPACLEAR.bit.GPIO19 = 1;
-//        memcpy(&weight[100], &weights_data[(i * 400) + 100], sizePart2);
-//        GpioDataRegs.GPASET.bit.GPIO19 = 1;
-//        while(Cla1Regs.MIRUN.bit.INT1 == 1);
-//
-//
-//        cla_offset_param = 100;
-//        cla_count_param = 300;
-//
-//
-//        Cla1ForceTask1();
-//        asm(" RPT #8 || NOP");
-//
-//
-//        while(Cla1Regs.MIRUN.bit.INT1 == 1);
-//
-//        output[i] = fResult;
-//
-//    }
-
-
-//    for(i = 0; i < 10; i++)
-//            {
-//                cla_accumulated_sum = 0.0f;
-//                GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-//                for( k = 0; k < 200; k++)
-//                {
-//                    weight_1[k] = weights_data[(i * 400) + k];
-//                }
-//                GpioDataRegs.GPASET.bit.GPIO18 = 1;
-//
-//                cla_offset_param = 1;
-//
-//
-//                Cla1ForceTask1();
-//                asm(" RPT #8 || NOP");
-//                GpioDataRegs.GPACLEAR.bit.GPIO19 = 1;
-//                for( k = 0; k < 200; k++)
-//                {
-//
-//                    weight_2[k] = weights_data[(i * 400) + 200 + k];
-//                }
-//                GpioDataRegs.GPASET.bit.GPIO19 = 1;
-//
-//               // while(Cla1Regs.MIRUN.bit.INT1 == 1);
-//
-//
-//                cla_accumulated_sum = cla_accumulated_sum + fResult;
-//
-//
-//                cla_offset_param = 2;
-//
-//
-//                Cla1ForceTask1();
-//                asm(" RPT #8 || NOP");
-//                //while(Cla1Regs.MIRUN.bit.INT1 == 1);
-//
-//                cla_accumulated_sum = cla_accumulated_sum + fResult;
-//                output[i] = cla_accumulated_sum;
-//            }
-
-
-
     for(;;)
      {
 
-        convolution(input_image, workspace, filters1, bias1, 28, 28);
-        relu_activation(workspace, 11492);
-        max_pooling(workspace, 26, 26, NUM_FILTERS);
+        convolution(input_image, workspace, filters1, bias1, IMAGE_SIZE, IMAGE_SIZE);
+        relu_activation(workspace, MAX_ELEMENTS);
+        max_pooling(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
 
-        convolution_2(workspace, &workspace[2873], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE);
-        relu_activation(&workspace[2873], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
-        max_pooling_2(&workspace[2873], input_vector, CONV2_OUT_SIZE, CONV2_OUT_SIZE, NUM_FILTERS);
+        convolution_2(workspace, &workspace[MAX_POLL_OUT_ELEMENT], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE);
+        relu_activation(&workspace[MAX_POLL_OUT_ELEMENT], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
+        max_pooling_2(&workspace[MAX_POLL_OUT_ELEMENT], input_vector, CONV2_OUT_SIZE, CONV2_OUT_SIZE, NUM_FILTERS);
 
 
 
