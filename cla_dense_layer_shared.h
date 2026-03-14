@@ -63,8 +63,10 @@ extern "C" {
 extern uint16_t cla_count_param; //input
 extern uint16_t cla_offset_param;
 extern float fResult;  //Estimated result
-extern float input_vector[DENSE_LAYER_INPUT];
-extern float weight [DENSE_LAYER_INPUT];
+//extern float input_vector[DENSE_LAYER_INPUT];
+extern int16_t input_vector[DENSE_LAYER_INPUT];
+//extern float weight [DENSE_LAYER_INPUT];
+extern int16_t weight [DENSE_LAYER_INPUT];
 extern float weight_1 [200];
 extern float weight_2 [200];
 

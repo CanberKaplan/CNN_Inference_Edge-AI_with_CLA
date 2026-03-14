@@ -105,7 +105,7 @@ SECTIONS
    .text            : > FLASHB|FLASHD      PAGE = 0, ALIGN(8)
    codestart        : > BEGIN       PAGE = 0, ALIGN(8)
    .stack           : > RAMM1       PAGE = 1
-   .switch          : > FLASHB      PAGE = 0, ALIGN(8)
+   .switch          : > FLASHB|FLASHD|FLASHE      PAGE = 0, ALIGN(8)
 
    /* Allocate uninitalized data sections: */
 
@@ -120,7 +120,7 @@ SECTIONS
    .pinit              : > FLASHB,       PAGE = 0, ALIGN(8)
    .ebss               : > RAMGS_TOTAL_CNN, /*RAMLS3*/		 PAGE = 1
    .esysmem            : > RAMLS3,       PAGE = 1
-   .econst             : > FLASHB   	 PAGE = 0, ALIGN(8)
+   .econst             : > FLASHB|FLASHD|FLASHE   	 PAGE = 0, ALIGN(8)
 #endif
 
    .reset           : > RESET,     PAGE = 0, TYPE = DSECT /* not used, */

@@ -8,6 +8,7 @@
 #include "weights.h"
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 #include "convolution.h"
 #include "definitions.h"
 
@@ -118,15 +119,17 @@ float fResult;  //output
 //                           4.2098, 4.4036, 3.4786, 2.0585, 0.0000, 1.0078, 4.3364, 2.8030, 1.2718, 0.1325,
 //};
 
-float input_vector[DENSE_LAYER_INPUT];
+//float input_vector[DENSE_LAYER_INPUT];
+int16_t input_vector[DENSE_LAYER_INPUT];
 
 //#define MAX_ELEMENTS 11492 // 16 * 26 * 26
 #pragma DATA_ALIGN(workspace, 8)
-float workspace[MAX_ELEMENTS] = {0.0f};
-
+//float workspace[MAX_ELEMENTS] = {0.0f};
+int16_t workspace[MAX_ELEMENTS] = {0.0f};
 
 #pragma DATA_SECTION(weight,"CLADataLS1");
-float weight [DENSE_LAYER_INPUT];
+//float weight [DENSE_LAYER_INPUT];
+int16_t weight [DENSE_LAYER_INPUT];
 
 #pragma DATA_SECTION(weight_1,"CLADataLS1");
 float weight_1 [200];
@@ -145,6 +148,15 @@ Uint16 count = 0;
 Uint16 val= 12;
 float output[10];
 unsigned int i,j,k;
+
+int counter;
+float max_raw_val;
+int predicted_class;
+float sum_exp;
+float confidence_rates[10];
+float class_percentages[10];
+float final_confidence_percentage;
+float temperature = 10000.0f;
 float cla_accumulated_sum = 0.0f;
 size_t dataSize = sizeof(float);
 size_t halfSize = 200 * sizeof(float);
@@ -192,13 +204,25 @@ int main(void)
     for(;;)
      {
 
-        convolution(input_image, workspace, filters1, bias1, IMAGE_SIZE, IMAGE_SIZE);
-        relu_activation(workspace, MAX_ELEMENTS);
-        max_pooling(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
+//        convolution(input_image, workspace, filters1, bias1, IMAGE_SIZE, IMAGE_SIZE);
+//        relu_activation(workspace, MAX_ELEMENTS);
+//        max_pooling(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
+//
+//        convolution_2(workspace, &workspace[MAX_POLL_OUT_ELEMENT], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE);
+//        relu_activation(&workspace[MAX_POLL_OUT_ELEMENT], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
+//        max_pooling_2(&workspace[MAX_POLL_OUT_ELEMENT], input_vector, CONV2_OUT_SIZE, CONV2_OUT_SIZE, NUM_FILTERS);
 
-        convolution_2(workspace, &workspace[MAX_POLL_OUT_ELEMENT], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE);
-        relu_activation(&workspace[MAX_POLL_OUT_ELEMENT], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
-        max_pooling_2(&workspace[MAX_POLL_OUT_ELEMENT], input_vector, CONV2_OUT_SIZE, CONV2_OUT_SIZE, NUM_FILTERS);
+        convolution_int16(input_image, workspace, filters1, bias1, IMAGE_SIZE,  IMAGE_SIZE, CONV1_WEIGHT_SCALE);
+
+        relu_activation_int16( workspace,  MAX_ELEMENTS);
+
+        max_pooling_int16(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
+
+        convolution_2_int16(workspace, &workspace[MAX_POLL_OUT_ELEMENT], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE, CONV2_WEIGHT_SCALE);
+
+        relu_activation_int16(&workspace[MAX_POLL_OUT_ELEMENT], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
+
+        max_pooling_2_int16(&workspace[MAX_POLL_OUT_ELEMENT], input_vector, CONV2_OUT_SIZE,  CONV2_OUT_SIZE, NUM_FILTERS);
 
 
 
@@ -206,19 +230,87 @@ int main(void)
         {
 
             GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
-           for(j = 0; j < 425; j++)
+           for(j = 0; j < DENSE_LAYER_INPUT; j++)
            {
-               weight[j] = weights_data[(i * 425) + j];
+               weight[j] = weights_data[(i * DENSE_LAYER_INPUT) + j];
 
 
            }
            GpioDataRegs.GPASET.bit.GPIO18 = 1;
                    CLA_runTest();
                   DELAY_US(500);
-                   output[i] = fResult;
+                   //output[i] = fResult;
+                   output[i] = fResult / FC_WEIGHT_SCALE;
            }
 
            GpioDataRegs.GPASET.bit.GPIO18 = 1;
+
+           for(i = 0; i < 10; i++)
+                   {
+                       GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
+                       for(j = 0; j < DENSE_LAYER_INPUT; j++)
+                       {
+                           weight[j] = weights_data[(i * DENSE_LAYER_INPUT) + j];
+                       }
+                       GpioDataRegs.GPASET.bit.GPIO18 = 1;
+                       CLA_runTest();
+                       DELAY_US(500);
+                       output[i] = fResult / FC_WEIGHT_SCALE;
+                   }
+
+
+           max_raw_val = output[0];
+                   predicted_class = 0;
+
+                   for(k = 1; k < 10; k++)
+                   {
+                       if(output[k] > max_raw_val)
+                       {
+                           max_raw_val = output[k];
+                           predicted_class = k;
+                       }
+                   }
+
+                   // --- 2. SOFTMAX WITH TEMPERATURE SCALING ---
+                   sum_exp = 0.0f;
+
+                   for(k = 0; k < 10; k++)
+                   {
+                       confidence_rates[k] = exp((output[k] - max_raw_val) / temperature);
+                       sum_exp += confidence_rates[k];
+                   }
+
+                   // --- 3. CALCULATE PERCENTAGE FOR *EVERY* CLASS ---
+                   for(k = 0; k < 10; k++)
+                   {
+                       // This fills the new array with values from 0.0 to 100.0
+                       class_percentages[k] = (confidence_rates[k] / sum_exp) * 100.0f;
+                   }
+        // 2. Fully Connected (Dense) Layer & Classification
+//                for(i = 0; i < 10; i++)
+//                {
+//                    GpioDataRegs.GPACLEAR.bit.GPIO18 = 1;
+//
+//                    // USE FLOAT TO PREVENT OVERFLOW
+//                    float dense_sum = 0.0f;
+//
+//                    for(j = 0; j < DENSE_LAYER_INPUT; j++)
+//                    {
+//                        // Cast to float specifically for the MAC operation
+//                        float in_val = (float)input_vector[j];
+//                        float w_val = (float)weights_data[(i * DENSE_LAYER_INPUT) + j];
+//
+//                        dense_sum += (in_val * w_val);
+//                    }
+//
+//                    // Add the corresponding bias
+//                    dense_sum += (float)fc_bias[i];
+//
+//                    // De-quantize using the scale factor and save to output
+//                    output[i] = dense_sum / FC_WEIGHT_SCALE;
+//
+//                    GpioDataRegs.GPASET.bit.GPIO18 = 1;
+//                }
 
 
 

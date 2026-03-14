@@ -22,4 +22,15 @@ void convolution_2(const float* input, float* output, const float* filters, cons
 
 void max_pooling_2(float* input, float* output, uint16_t in_h, uint16_t in_w, uint16_t num_filters);
 
+
+void convolution_int16(const int16_t* input, int16_t* output, const int16_t* filters, const int16_t* bias, int in_h, int in_w, float scale_factor);
+
+void relu_activation_int16(int16_t* data, uint32_t size);
+
+void max_pooling_int16(int16_t* data, uint16_t in_h, uint16_t in_w, uint16_t num_filters);
+
+void convolution_2_int16(const int16_t* input, int16_t* output, const int16_t* filters, const int16_t* bias, uint16_t in_h, uint16_t in_w, float scale_factor);
+
+void max_pooling_2_int16(int16_t* input, int16_t* output, uint16_t in_h, uint16_t in_w, uint16_t num_filters);
+
 #endif /* CONVOLUTION_H_ */

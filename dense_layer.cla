@@ -81,10 +81,10 @@ __interrupt void Cla1Task1 ( void )
 //        float sum_2 = 0.0f;
         float sum   = 0.0f;
 
-        for(i = 0; i < 425; i++)
+        for(i = 0; i < DENSE_LAYER_INPUT; i++)
         {
             // Y = W * X
-            sum += input_vector[i] * weight[i];
+            sum += (float)input_vector[i] * (float)weight[i];
         }
 
         fResult = sum;
