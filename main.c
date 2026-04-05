@@ -665,37 +665,13 @@ int16_t weight [DENSE_LAYER_WEIGHTS] = {                                 -2527, 
                                                                           -1089, 8102, 5055, -7846, -14886, -6783, -4156, 3011, 697, -13267
                                                                       };
 
-//#pragma DATA_SECTION(weight_1,"CLADataLS1");
-//float weight_1 [200];
-//
-//#pragma DATA_SECTION(weight_2,"CLADataLS1");
-//float weight_2 [200];
 #endif //__cplusplus
-
 
 void CLA_runTest(void);
 void CLA_configClaMemory(void);
 void CLA_initCpu1Cla1(void);
 __interrupt void cla1Isr1();
 
-Uint16 count = 0;
-Uint16 val= 12;
-float output[10];
-unsigned int i,j,k;
-
-int counter;
-float max_raw_val;
-int predicted_class;
-float sum_exp;
-float confidence_rates[10];
-float class_percentages[10];
-float final_confidence_percentage;
-float temperature = 10000.0f;
-float cla_accumulated_sum = 0.0f;
-size_t dataSize = sizeof(float);
-size_t halfSize = 200 * sizeof(float);
-size_t sizePart1 = 100 * sizeof(float);
-size_t sizePart2 = 300 * sizeof(float);
 int main(void)
 {
     InitSysCtrl();
@@ -738,18 +714,8 @@ int main(void)
     for(;;)
      {
 
-//        convolution(input_image, workspace, filters1, bias1, IMAGE_SIZE, IMAGE_SIZE);
-//        relu_activation(workspace, MAX_ELEMENTS);
-//        max_pooling(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
-//
-//        convolution_2(workspace, &workspace[MAX_POLL_OUT_ELEMENT], filters2, bias2, CONV2_IN_SIZE, CONV2_IN_SIZE);
-//        relu_activation(&workspace[MAX_POLL_OUT_ELEMENT], NUM_FILTERS * CONV2_OUT_SIZE * CONV2_OUT_SIZE);
-//        max_pooling_2(&workspace[MAX_POLL_OUT_ELEMENT], input_vector, CONV2_OUT_SIZE, CONV2_OUT_SIZE, NUM_FILTERS);
-        GPIO_WritePin(18, 0);
-
         convolution_int16(input_image, workspace, conv1_weights, conv1_bias, IMAGE_SIZE,  IMAGE_SIZE, CONV1_WEIGHT_SCALE);
 
-        GPIO_WritePin(18, 1);
         relu_activation_int16( workspace,  MAX_ELEMENTS);
 
         max_pooling_int16(workspace, CONV_OUT_SIZE, CONV_OUT_SIZE, NUM_FILTERS);
@@ -762,10 +728,6 @@ int main(void)
 
 
         CLA_runTest();
-//        DELAY_US(500);
-
-
-
 
      }
 
@@ -775,11 +737,9 @@ int main(void)
 
 void CLA_runTest(void)
 {
-//    fVal =12;
+
 
     Cla1ForceTask1();
-//    asm(" RPT #8 || NOP");
-//    while(Cla1Regs.MIRUN.bit.INT1 == 1);
 
 #if 0
     Cla1ForceTask2andWait();
