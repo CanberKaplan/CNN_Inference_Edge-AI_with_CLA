@@ -76,18 +76,20 @@ __interrupt void Cla1Task1 ( void )
 
     GpioDataRegs.GPCCLEAR.bit.GPIO67 = 1;
 
-    unsigned int i;
-//        float sum_1 = 0.0f;
-//        float sum_2 = 0.0f;
-        float sum   = 0.0f;
+    unsigned int i,k;
 
-        for(i = 0; i < DENSE_LAYER_INPUT; i++)
+
+        for(k = 0; k < 10; k++)
         {
-            // Y = W * X
-            sum += (float)input_vector[i] * (float)weight[i];
-        }
+            float sum   = 0.0f;
+            for(i = 0; i < DENSE_LAYER_INPUT; i++)
+            {
+                // Y = W * X
+                sum += (float)input_vector[i] * (float)weight[(i + (k*DENSE_LAYER_INPUT))];
+            }
 
-        fResult = sum;
+            fResult[k] = sum / FC_WEIGHT_SCALE;
+        }
 
    GpioDataRegs.GPCSET.bit.GPIO67 = 1;
 

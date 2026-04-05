@@ -22,11 +22,13 @@ PAGE 0 :
    RAMD0           	: origin = 0x00B000,   length = 0x000800
    //RAMLS0          	: origin = 0x008000,   length = 0x000800
    //RAMLS1          	: origin = 0x008800,   length = 0x000800
-   RAMLS_0_1_2      : origin = 0x008000, length = 0x001800
+   //RAMLS_0_1_2      : origin = 0x008000, length = 0x001800
+   //RAMLS_0_1_2_3    : origin = 0x008000, length = 0x002000
+   RAMLS_0_1_2_3_4  : origin = 0x008000, length = 0x002800
    /* RAMLS4      	   : origin = 0x00A000, length = 0x000800 */
    /* RAMLS5           : origin = 0x00A800, length = 0x000800 */
-   RAMLS4_5         : origin = 0x00A000,   length = 0x001000
-
+   //RAMLS4_5         : origin = 0x00A000,   length = 0x001000
+	RAMLS5_PROG      : origin = 0x00A800, length = 0x000800
    //RAMGS14          : origin = 0x01A000,   length = 0x001000     /* Only Available on F28379D, F28377D, F28375D devices. Remove line on other devices. */
    //RAMGS15          : origin = 0x01B000, length = 0x000FF8     /* Only Available on F28379D, F28377D, F28375D devices. Remove line on other devices. */
 
@@ -60,7 +62,7 @@ PAGE 1 :
 //   RAMM1_RSVD      : origin = 0x0007F8, length = 0x000008     /* Reserve and do not use for code as per the errata advisory "Memory: Prefetching Beyond Valid Memory" */
 
    //RAMLS2      		: origin = 0x009000,   length = 0x000800
-   RAMLS3      		: origin = 0x009800,   length = 0x000800
+   //RAMLS3      		: origin = 0x009800,   length = 0x000800
 
    //RAMGS0           : origin = 0x00C000,   length = 0x001000
    //RAMGS1           : origin = 0x00D000,   length = 0x001000
@@ -111,15 +113,15 @@ SECTIONS
 
 #if defined(__TI_EABI__)
    .init_array         : > FLASHB,       PAGE = 0, ALIGN(8)
-   .bss                : > RAMLS3,       PAGE = 1
-   .bss:output         : > RAMLS3,       PAGE = 1
-   .data               : > RAMLS3,       PAGE = 1
-   .sysmem             : > RAMLS3,       PAGE = 1
+   .bss                : > RAMGS_TOTAL_CNN,       PAGE = 1
+   .bss:output         : > RAMGS_TOTAL_CNN,       PAGE = 1
+   .data               : > RAMGS_TOTAL_CNN,       PAGE = 1
+   .sysmem             : > RAMGS_TOTAL_CNN,       PAGE = 1
    .const              : > FLASHB,       PAGE = 0, ALIGN(8)
 #else
    .pinit              : > FLASHB,       PAGE = 0, ALIGN(8)
    .ebss               : > RAMGS_TOTAL_CNN, /*RAMLS3*/		 PAGE = 1
-   .esysmem            : > RAMLS3,       PAGE = 1
+   .esysmem            : > RAMGS_TOTAL_CNN,       PAGE = 1
    .econst             : > FLASHB|FLASHD|FLASHE   	 PAGE = 0, ALIGN(8)
 #endif
 
@@ -133,7 +135,7 @@ SECTIONS
     /* CLA specific sections */
    #if defined(__TI_EABI__)
    		Cla1Prog    : LOAD = FLASHD,
-                      RUN = RAMLS4_5,
+                      RUN = RAMLS5_PROG,
                       LOAD_START(Cla1funcsLoadStart),
                       LOAD_END(Cla1funcsLoadEnd),
                       RUN_START(Cla1funcsRunStart),
@@ -141,7 +143,7 @@ SECTIONS
                       PAGE = 0, ALIGN(8)
    #else
       	Cla1Prog    : LOAD = FLASHD,
-                      RUN = RAMLS4_5,
+                      RUN = RAMLS5_PROG,
                       LOAD_START(_Cla1funcsLoadStart),
                       LOAD_END(_Cla1funcsLoadEnd),
                       RUN_START(_Cla1funcsRunStart),
@@ -149,8 +151,8 @@ SECTIONS
                       PAGE = 0, ALIGN(8)
    #endif
 
-   CLADataLS0		: > RAMLS_0_1_2, PAGE=0
-   CLADataLS1		: > RAMLS_0_1_2, PAGE=0
+   CLADataLS0		: > RAMLS_0_1_2_3_4, PAGE=0
+   CLADataLS1		: > RAMLS_0_1_2_3_4, PAGE=0
 
    Cla1ToCpuMsgRAM  : > CLA1_MSGRAMLOW,   PAGE = 1
    CpuToCla1MsgRAM  : > CLA1_MSGRAMHIGH,  PAGE = 1
@@ -205,13 +207,13 @@ SECTIONS
    CLAscratch       :
                      { *.obj(CLAscratch)
                      . += CLA_SCRATCHPAD_SIZE;
-                     *.obj(CLAscratch_end) } >  RAMLS_0_1_2,  PAGE = 0
+                     *.obj(CLAscratch_end) } >  RAMLS_0_1_2_3_4,  PAGE = 0
 
-   .scratchpad      : > RAMLS_0_1_2,       PAGE = 0
-   .bss_cla		    : > RAMLS_0_1_2,       PAGE = 0
+   .scratchpad      : > RAMLS_0_1_2_3_4,       PAGE = 0
+   .bss_cla		    : > RAMLS_0_1_2_3_4,       PAGE = 0
    #if defined(__TI_EABI__)
    .const_cla      : LOAD = FLASHB,
-                      RUN = RAMLS_0_1_2,
+                      RUN = RAMLS_0_1_2_3_4,
                       RUN_START(Cla1ConstRunStart),
                       LOAD_START(Cla1ConstLoadStart),
                       LOAD_SIZE(Cla1ConstLoadSize),
@@ -219,7 +221,7 @@ SECTIONS
                       ALIGN(4)
   #else
    .const_cla      : LOAD = FLASHB,
-                      RUN = RAMLS_0_1_2,
+                      RUN = RAMLS_0_1_2_3_4,
                       RUN_START(_Cla1ConstRunStart),
                       LOAD_START(_Cla1ConstLoadStart),
                       LOAD_SIZE(_Cla1ConstLoadSize),
