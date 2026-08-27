@@ -79,6 +79,9 @@ main.obj: C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/machi
 main.obj: ../convolution.h
 main.obj: C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlib.h
 main.obj: C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlibf.h
+main.obj: ../feature_tables.h
+main.obj: ../golden_vector.h
+main.obj: C:/Users/Canberk_Kaplan/workspace_v12/dense_layer_cla/firmware/include/adc.h
 
 ../main.c:
 
@@ -237,4 +240,10 @@ C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/machine/_limits
 C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlib.h:
 
 C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlibf.h:
+
+../feature_tables.h:
+
+../golden_vector.h:
+
+C:/Users/Canberk_Kaplan/workspace_v12/dense_layer_cla/firmware/include/adc.h:
 

@@ -16,67 +16,87 @@ ASM_SRCS += \
 ../F2837xD_usDelay.asm 
 
 C_SRCS += \
+../F2837xD_Adc.c \
 ../F2837xD_DefaultISR.c \
+../F2837xD_Dma.c \
 ../F2837xD_GlobalVariableDefs.c \
 ../F2837xD_Gpio.c \
+../F2837xD_Ipc.c \
 ../F2837xD_PieCtrl.c \
 ../F2837xD_PieVect.c \
 ../F2837xD_SysCtrl.c \
 ../convolution.c \
-../main.c 
+../main.c \
+../mfcc_extract.c 
 
 CLA_DEPS += \
 ./dense_layer.d 
 
 C_DEPS += \
+./F2837xD_Adc.d \
 ./F2837xD_DefaultISR.d \
+./F2837xD_Dma.d \
 ./F2837xD_GlobalVariableDefs.d \
 ./F2837xD_Gpio.d \
+./F2837xD_Ipc.d \
 ./F2837xD_PieCtrl.d \
 ./F2837xD_PieVect.d \
 ./F2837xD_SysCtrl.d \
 ./convolution.d \
-./main.d 
+./main.d \
+./mfcc_extract.d 
 
 OBJS += \
+./F2837xD_Adc.obj \
 ./F2837xD_CodeStartBranch.obj \
 ./F2837xD_DefaultISR.obj \
+./F2837xD_Dma.obj \
 ./F2837xD_GlobalVariableDefs.obj \
 ./F2837xD_Gpio.obj \
+./F2837xD_Ipc.obj \
 ./F2837xD_PieCtrl.obj \
 ./F2837xD_PieVect.obj \
 ./F2837xD_SysCtrl.obj \
 ./F2837xD_usDelay.obj \
 ./convolution.obj \
 ./dense_layer.obj \
-./main.obj 
+./main.obj \
+./mfcc_extract.obj 
 
 ASM_DEPS += \
 ./F2837xD_CodeStartBranch.d \
 ./F2837xD_usDelay.d 
 
 OBJS__QUOTED += \
+"F2837xD_Adc.obj" \
 "F2837xD_CodeStartBranch.obj" \
 "F2837xD_DefaultISR.obj" \
+"F2837xD_Dma.obj" \
 "F2837xD_GlobalVariableDefs.obj" \
 "F2837xD_Gpio.obj" \
+"F2837xD_Ipc.obj" \
 "F2837xD_PieCtrl.obj" \
 "F2837xD_PieVect.obj" \
 "F2837xD_SysCtrl.obj" \
 "F2837xD_usDelay.obj" \
 "convolution.obj" \
 "dense_layer.obj" \
-"main.obj" 
+"main.obj" \
+"mfcc_extract.obj" 
 
 C_DEPS__QUOTED += \
+"F2837xD_Adc.d" \
 "F2837xD_DefaultISR.d" \
+"F2837xD_Dma.d" \
 "F2837xD_GlobalVariableDefs.d" \
 "F2837xD_Gpio.d" \
+"F2837xD_Ipc.d" \
 "F2837xD_PieCtrl.d" \
 "F2837xD_PieVect.d" \
 "F2837xD_SysCtrl.d" \
 "convolution.d" \
-"main.d" 
+"main.d" \
+"mfcc_extract.d" 
 
 CLA_DEPS__QUOTED += \
 "dense_layer.d" 
@@ -85,18 +105,22 @@ ASM_DEPS__QUOTED += \
 "F2837xD_CodeStartBranch.d" \
 "F2837xD_usDelay.d" 
 
-ASM_SRCS__QUOTED += \
-"../F2837xD_CodeStartBranch.asm" \
-"../F2837xD_usDelay.asm" 
-
 C_SRCS__QUOTED += \
+"../F2837xD_Adc.c" \
 "../F2837xD_DefaultISR.c" \
+"../F2837xD_Dma.c" \
 "../F2837xD_GlobalVariableDefs.c" \
 "../F2837xD_Gpio.c" \
+"../F2837xD_Ipc.c" \
 "../F2837xD_PieCtrl.c" \
 "../F2837xD_PieVect.c" \
 "../F2837xD_SysCtrl.c" \
 "../convolution.c" \
-"../main.c" 
+"../main.c" \
+"../mfcc_extract.c" 
+
+ASM_SRCS__QUOTED += \
+"../F2837xD_CodeStartBranch.asm" \
+"../F2837xD_usDelay.asm" 
 
 

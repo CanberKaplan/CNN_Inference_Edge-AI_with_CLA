@@ -248,6 +248,26 @@ void max_pooling_int16(int16_t* data, uint16_t in_h, uint16_t in_w, uint16_t num
     }
 }
 
+void max_pooling_2x1_int16(const int16_t* input, int16_t* output,
+                                 uint16_t in_h, uint16_t in_w, uint16_t num_filters)
+{
+    uint16_t f, r, c;
+    uint16_t out_h = in_h / 2;
+    uint32_t write_idx = 0;
+
+    for (f = 0; f < num_filters; f++) {
+        uint32_t off = (uint32_t)f * in_h * in_w;
+        for (r = 0; r < out_h; r++) {
+            const int16_t* row0 = &input[off + (uint32_t)(r * 2)     * in_w];
+            const int16_t* row1 = &input[off + (uint32_t)(r * 2 + 1) * in_w];
+            for (c = 0; c < in_w; c++) {
+                int16_t a = row0[c], b = row1[c];
+                output[write_idx++] = (a > b) ? a : b;
+            }
+        }
+    }
+}
+
 
 void convolution_2_int16(const int16_t* input, int16_t* output, const int16_t* filters, const int16_t* bias, uint16_t in_h, uint16_t in_w, float scale_factor)
 {

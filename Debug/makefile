@@ -10,10 +10,13 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./F2837xD_Adc.obj" \
 "./F2837xD_CodeStartBranch.obj" \
 "./F2837xD_DefaultISR.obj" \
+"./F2837xD_Dma.obj" \
 "./F2837xD_GlobalVariableDefs.obj" \
 "./F2837xD_Gpio.obj" \
+"./F2837xD_Ipc.obj" \
 "./F2837xD_PieCtrl.obj" \
 "./F2837xD_PieVect.obj" \
 "./F2837xD_SysCtrl.obj" \
@@ -21,6 +24,8 @@ ORDERED_OBJS += \
 "./convolution.obj" \
 "./dense_layer.obj" \
 "./main.obj" \
+"./mfcc_extract.obj" \
+"./firmware/source/adc.obj" \
 "../2837xD_FLASH_CLA_lnk_cpu1.cmd" \
 $(GEN_CMDS__FLAG) \
 -l"C:/ti/c2000/C2000Ware_5_05_00_00/device_support/f2837xd/headers/cmd/F2837xD_Headers_nonBIOS_cpu1.cmd" \
@@ -34,7 +39,9 @@ RMDIR := RMDIR /S/Q
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
+-include firmware/source/subdir_vars.mk
 -include subdir_rules.mk
+-include firmware/source/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -152,8 +159,8 @@ dense_layer_cla.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "convolution.obj" "dense_layer.obj" "main.obj" 
-	-$(RM) "F2837xD_DefaultISR.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "convolution.d" "main.d" 
+	-$(RM) "F2837xD_Adc.obj" "F2837xD_CodeStartBranch.obj" "F2837xD_DefaultISR.obj" "F2837xD_Dma.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_Ipc.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "convolution.obj" "dense_layer.obj" "main.obj" "mfcc_extract.obj" "firmware\source\adc.obj" 
+	-$(RM) "F2837xD_Adc.d" "F2837xD_DefaultISR.d" "F2837xD_Dma.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_Ipc.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "convolution.d" "main.d" "mfcc_extract.d" "firmware\source\adc.d" 
 	-$(RM) "dense_layer.d" 
 	-$(RM) "F2837xD_CodeStartBranch.d" "F2837xD_usDelay.d" 
 	-@echo 'Finished clean'
