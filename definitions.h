@@ -10,10 +10,15 @@
 
 
 
-// main.c ve convolution.c içindeki eski isim uyumluluğu için
-#define IMAGE_H              32   // 32
+// GUNCELLEME: Prepare_features.py'de SLICE_LEN 8448->16896'ya (0.528s->1.056s,
+// 32->65 cerceve) cikarildi -- dosya-bazli 5-fold CV'de macro-F1'i
+// 0.979+-0.029'dan 0.991+-0.011'e iyilestirdigi icin (bkz. egitim tarafi
+// notlari). IMAGE_H bu yuzden 32 degil 65. IMAGE_W (MFCC katsayi sayisi)
+// degismedi.
+#define IMAGE_H              65   // 65 (eskiden 32)
 #define IMAGE_W              12   // 12
 #define NUM_FILTERS          6  // 6
+#define NUM_CLASSES          3  // Healthy=0, Bearing=1, Propeller=2
 
 #define FILTER_SIZE          3  // 3x3
 
@@ -39,27 +44,39 @@
 #define POOL1_SIZE           (NUM_FILTERS * POOL1_OUT_H * POOL1_OUT_W) // 6 * 15 * 10 = 900
 #define CONV2_SIZE           (NUM_FILTERS * CONV2_OUT_H * CONV2_OUT_W) // 6 * 13 * 8  = 624
 
-// Toplam gereken çalışma belleği (workspace) boyutu:
-// 1800 (Conv1 Çıktısı) + 900 (Pool1 Çıktısı) + 624 (Conv2 Çıktısı) = 3324 eleman
-#define MAX_ELEMENTS         (CONV1_SIZE + POOL1_SIZE + CONV2_SIZE)
-
 // Dense katmana giren düzleştirilmiş veri boyutu
-#define DENSE_LAYER_INPUT    288
+// GUNCELLEME: IMAGE_H 32->65 oldugu icin 288->672 (6*14*8), 864->2016 (672*3)
+#define DENSE_LAYER_INPUT    (NUM_FILTERS * POOL2_OUT_H * POOL2_OUT_W)  // 672
+#define DENSE_LAYER_WEIGHTS  (DENSE_LAYER_INPUT * NUM_CLASSES) // 672*3 = 2016
 
-#define DENSE_LAYER_WEIGHTS  (864) // 288 * 3 = 864
+// GUNCELLEME (DUZELTME): eski formul CONV1_SIZE+POOL1_SIZE+CONV2_SIZE idi --
+// bu, conv1/conv2'nin HAVUZLANMAMIS (ham) ciktisini da workspace'te ayri
+// ayri saklayan eski (fused OLMAYAN) bir tasarimdan kalmaydi. Gercek
+// dense_layer.cla::conv1_pool_fused_cla/conv2_pool_fused_cla fonksiyonlari
+// havuzlanmamis ciktiyi HIC saklamiyor (her pooled deger, 2 satirlik
+// pencereden dogrudan, ara depolama olmadan hesaplaniyor) -- yani
+// workspace'in gercekte ihtiyaci olan tek sey POOL1_SIZE (pool1 ciktisi,
+// conv2'nin okudugu) + DENSE_LAYER_INPUT (=POOL2_SIZE, pool2 ciktisi = FC
+// girdisi). Eski (yanlis buyutulmus) formul CLA'nin dar RAMLS havuzunda
+// ~9000 byte bosa harcatiyordu -- bu da weight[]'in (4032 byte) CLA'da
+// kalmasini engelleyip FC'yi CPU'ya tasimamiza yol acmisti. Duzeltilince
+// FC yeniden CLA'da kalabiliyor (asagida dense_layer.cla'ya geri tasindi).
+#define MAX_ELEMENTS         (POOL1_SIZE + DENSE_LAYER_INPUT)
 
 // --- Kuantalama Ölçekleri (Scale Factors) ---
 // Float özellikleri int16'ya çevirmek için giriş çarpanı
 #define INPUT_SCALE          256.0f
 
-// Değerler model_weights_int16.h dosyasından alınmıştır
-#define CONV1_WEIGHT_SCALE   85721.9989368545f
-#define CONV1_BIAS_SCALE     88490.2848561893f
+// GUNCELLEME: degerler artik export/dataset__eval_heldout_test/
+// model_weights_int16.h'dan (35 dosyayla egitilmis, 8 dosya gercekten
+// hic gorulmemis, tez icin secilen model -- full.npz'nin DEGIL).
+#define CONV1_WEIGHT_SCALE   85225.6061230335f
+#define CONV1_BIAS_SCALE     82979.7152130700f
 
-#define CONV2_WEIGHT_SCALE   179186.7648735111f
-#define CONV2_BIAS_SCALE     226969.5285718945f
+#define CONV2_WEIGHT_SCALE   163521.1199053864f
+#define CONV2_BIAS_SCALE     235978.0876924510f
 
-#define FC_WEIGHT_SCALE      300475.8649717340f
-#define FC_BIAS_SCALE        897049.6296538947f
+#define FC_WEIGHT_SCALE      194639.4179048291f
+#define FC_BIAS_SCALE        3044365.3756936355f
 
 #endif /* DEFINITIONS_H_ */

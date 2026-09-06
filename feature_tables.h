@@ -13,8 +13,8 @@
 #define FEAT_N_MELS      40
 #define FEAT_N_FFT_BINS  257   // n_fft/2 + 1, DC..Nyquist
 #define FEAT_N_OUT       12        // MFCC katsayi sayisi (C0 HARIC)
-#define FEAT_N_FRAMES    32     // dilim basina cerceve sayisi
-#define FEAT_SLICE_LEN   8448   // dilim basina orneksec
+#define FEAT_N_FRAMES    65     // dilim basina cerceve sayisi
+#define FEAT_SLICE_LEN   16896   // dilim basina orneksec
 #define FEAT_AMIN        1e-10f  // librosa power_to_db varsayilani
 #define FEAT_TOP_DB      80.0f   // librosa power_to_db varsayilani
 #define FEAT_CLIP        3.0f
@@ -74,9 +74,9 @@ static const float feat_dct_matrix[FEAT_N_OUT][FEAT_N_MELS] = {
 };
 
 // z-score normalizasyonu: (mfcc - mu) / sigma, sonra +-FEAT_CLIP'e kirp
-static const float feat_mu[12] = { -19.7261562347f, -6.2675962448f, 10.4970264435f, 2.3663289547f, -3.7536902428f, 1.5409296751f, -0.8574584126f, 8.0006771088f, -7.5194845200f, 4.5569114685f, -5.2676701546f, -0.3217315674f };
+static const float feat_mu[12] = { -19.1384468079f, -6.8408060074f, 10.3630590439f, 2.5975599289f, -2.2870082855f, -1.0090036392f, 1.3482940197f, 6.0874290466f, -6.2189168930f, 3.2517418861f, -3.1511411667f, -0.8732911944f };
 
-static const float feat_sigma[12] = { 9.9364233017f, 6.7102136612f, 10.2589292526f, 9.2892408371f, 5.8656172752f, 4.6849913597f, 4.3769841194f, 8.1154117584f, 7.6205735207f, 5.8657345772f, 6.3302812576f, 5.1781487465f };
+static const float feat_sigma[12] = { 11.4183158875f, 7.6772599220f, 8.3551559448f, 7.7568907738f, 5.6930165291f, 5.9187302589f, 5.4175367355f, 6.9239754677f, 6.7033982277f, 5.3527493477f, 6.1534957886f, 4.7885618210f };
 
 
 #endif // FEATURE_TABLES_H

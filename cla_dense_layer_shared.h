@@ -62,14 +62,26 @@ extern "C" {
 //
 extern uint16_t cla_count_param; //input
 extern uint16_t cla_offset_param;
-extern float fResult[10];  //Estimated result
+// GUNCELLEME: fResult[10] (MNIST'in 10 rakami) -> fResult[NUM_CLASSES] (=3).
+extern float fResult[NUM_CLASSES];  //Estimated result
 //extern float input_vector[DENSE_LAYER_INPUT];
 extern int16_t input_vector[DENSE_LAYER_INPUT];
 //extern float weight [DENSE_LAYER_INPUT];
-extern int16_t weight [DENSE_LAYER_WEIGHTS];
+extern const int16_t weight [DENSE_LAYER_WEIGHTS];
+// EKLENDI: dense/FC katmaninin bias'i -- Cla1Task1 (dense_layer.cla) eskiden
+// bias hic eklemiyordu (sum = W*X, +bias yok). fc_bias degerleri (weights.h)
+// sinif ayrimini gozle gorulur sekilde etkileyecek buyuklukte oldugu icin
+// (bkz. model_weights_int16.h: fc_bias=[-32767,27600,16493]) eklendi.
+extern const int16_t fc_bias [NUM_CLASSES];
 extern float weight_1 [200];
 extern float weight_2 [200];
 
+extern int16_t input_image[];
+extern const int16_t conv1_weights[];
+extern const int16_t conv1_bias[];
+extern const int16_t conv2_weights[];
+extern const int16_t conv2_bias[];
+extern int16_t workspace[];
 
 
 //
@@ -112,13 +124,8 @@ extern float weight_2 [200];
 // .global and the main CPU can make use of them.
 //
 __interrupt void Cla1Task1();
-__interrupt void Cla1Task2();
-__interrupt void Cla1Task3();
-__interrupt void Cla1Task4();
-__interrupt void Cla1Task5();
-__interrupt void Cla1Task6();
-__interrupt void Cla1Task7();
-__interrupt void Cla1Task8();
+// GUNCELLEME: Cla1Task2..8 bildirimleri kaldirildi -- tanimlari
+// dense_layer.cla'dan silindi (kullanilmiyorlardi, bkz. oradaki not).
 
 #ifdef __cplusplus
 }
