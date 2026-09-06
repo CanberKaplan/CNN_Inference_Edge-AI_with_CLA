@@ -41,10 +41,13 @@ PAGE 0 :
    FLASHB           : origin = 0x082000,   length = 0x004000	/* on-chip Flash */
    //FLASHC           : origin = 0x084000,   length = 0x002000	/* on-chip Flash */
    FLASHD           : origin = 0x086000,   length = 0x002000	/* on-chip Flash */
-   FLASHE           : origin = 0x088000,   length = 0x008000	/* on-chip Flash */
-   FLASHF           : origin = 0x090000,   length = 0x008000	/* on-chip Flash */
-   FLASHG           : origin = 0x098000,   length = 0x008000	/* on-chip Flash */
-   FLASHH           : origin = 0x0A0000,   length = 0x008000	/* on-chip Flash */
+   // GUNCELLEME: FLASHE/F/G/H fiziksel olarak bitisik (0x088000-0x0A8000)
+   // ve hicbiri kullanilmiyordu -- TEK bir 0x20000 (128KB) bolge olarak
+   // birlestirildi. Sebep: uc golden_adc dizisinin her biri 0x8400 (33792)
+   // byte -- tek bir 0x8000 (32768) byte'lik bankaya SIGMIYOR (tam 1KB
+   // eksik kaliyordu). Birlestirilmis bolge, hicbirini boyutsal olarak
+   // asmadan hepsini rahatlikla barindiriyor.
+   FLASH_EFGH       : origin = 0x088000,   length = 0x020000	/* on-chip Flash (E+F+G+H birlesik) */
    FLASHI           : origin = 0x0A8000,   length = 0x008000	/* on-chip Flash */
    FLASHJ           : origin = 0x0B0000,   length = 0x008000	/* on-chip Flash */
    FLASHK           : origin = 0x0B8000,   length = 0x002000	/* on-chip Flash */
@@ -108,7 +111,7 @@ SECTIONS
    .text            : > FLASHB|FLASHD      PAGE = 0, ALIGN(8)
    codestart        : > BEGIN       PAGE = 0, ALIGN(8)
    .stack           : > RAMM1       PAGE = 1
-   .switch          : > FLASHB|FLASHD|FLASHE      PAGE = 0, ALIGN(8)
+   .switch          : > FLASHB|FLASHD|FLASH_EFGH      PAGE = 0, ALIGN(8)
 
    /* Allocate uninitalized data sections: */
 
@@ -123,7 +126,11 @@ SECTIONS
    .pinit              : > FLASHB,       PAGE = 0, ALIGN(8)
    .ebss               : > RAMGS_TOTAL_CNN, /*RAMLS3*/		 PAGE = 1
    .esysmem            : > RAMGS_TOTAL_CNN,       PAGE = 1
-   .econst             : > FLASHB|FLASHD|FLASHE   	 PAGE = 0, ALIGN(8)
+   // GUNCELLEME: 3 sinifin golden_adc'i (her biri 16896 uint16 = 33792 byte,
+   // toplam ~101KB) eskiden FLASHB|FLASHD|FLASHE'ye sigmiyordu (ayrica tek
+   // bir dizi tek bir bankaya da sigmiyordu, bkz. FLASH_EFGH notu yukarida).
+   // Simdi birlesik FLASH_EFGH (128KB) hedef listesine eklendi.
+   .econst             : > FLASHB|FLASHD|FLASH_EFGH   	 PAGE = 0, ALIGN(8)
 #endif
 
    .reset           : > RESET,     PAGE = 0, TYPE = DSECT /* not used, */

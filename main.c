@@ -12,7 +12,15 @@
 #include "convolution.h"
 #include "definitions.h"
 #include "feature_tables.h"
-#include "golden_vector.h"
+// GUNCELLEME: gercek ADC/DMA yolu henuz hazir degil (ayri bir gorusme
+// konusu -- arabellek boyutu eski SLICE_LEN'e gore, cift tamponlama yok).
+// Bu asamada ucu sinifin (Healthy/Bearing/Propeller) golden vector'u AYNI
+// ANDA dahil edilip runtime'da aralarinda gecis yapilarak pipeline'in
+// (mfcc_extract -> quantize -> CLA conv1+conv2+FC) girdinin degismesini
+// dogru yakalayip yakalamadigi test ediliyor -- gercek ADC olmadan.
+#include "golden_vector_healthy.h"
+#include "golden_vector_bearing.h"
+#include "golden_vector_propeller.h"
 #include "adc.h"
 
 #define INPUT_SIZE 2704
@@ -259,6 +267,10 @@ const int16_t weight [DENSE_LAYER_WEIGHTS] = {
 Uint16 adcData0[RESULTS_BUFFER_SIZE];
 //Uint16 adcData1[RESULTS_BUFFER_SIZE];
 volatile Uint16 done;
+// EKLENDI: CLA1_1_INT (Cla1Task1 BITTIGINDE ates lenen kesme) bunu 1 yapar --
+// main loop artik fResult[]'i CLA henuz hesaplamayi bitirmeden okumuyor.
+// Eskiden boyle bir senkronizasyon yoktu.
+volatile uint16_t cla_done = 0;
 #endif //__cplusplus
 
 void CLA_runTest(void);
@@ -267,6 +279,21 @@ void CLA_initCpu1Cla1(void);
 
 static float features[FEAT_N_FRAMES][FEAT_N_OUT];   /* 65x12 (eskiden 32x12 -- SLICE_LEN 2x oldu) */
 __interrupt void cla1Isr1();
+
+// EKLENDI: golden-vector dongusu -- gercek ADC yerine, uc sinifin
+// (Healthy/Bearing/Propeller) onceden hesaplanmis golden_adc dizisi
+// sirayla beslenip pipeline'in giris degisimini dogru yakalayip
+// yakalamadigi (CLA sonucu -> beklenen sinifla eslesiyor mu) test edilir.
+static const uint16_t *const golden_inputs[NUM_CLASSES] = {
+    golden_adc_healthy, golden_adc_bearing, golden_adc_propeller
+};
+static const char *const golden_names[NUM_CLASSES] = { "Healthy", "Bearing", "Propeller" };
+// CCS'in Expressions/Watch penceresinden debug sirasinda canli izlemek
+// icin: hangi giris beslendi, model ne tahmin etti, dogru mu.
+volatile uint16_t g_expected_class = 0;
+volatile uint16_t g_predicted_class = 0;
+volatile uint16_t g_correct_count = 0;
+volatile uint16_t g_total_count = 0;
 
 void mfcc_extract(const unsigned int* adc_buf,
                         float out[FEAT_N_FRAMES][FEAT_N_OUT]);
@@ -411,11 +438,19 @@ int main(void)
     //
         EPwm2Regs.ETSEL.bit.SOCAEN = 1;
 
+    // EKLENDI: sirayla beslenecek sinif indeksi (0=Healthy,1=Bearing,2=Propeller,
+    // sonra basa sarar). static: fonksiyon disina tasinsa da her cagrida degerini korur.
+    static uint16_t golden_cycle_idx = 0;
+
     for(;;)
      {
         GPIO_WritePin(18, 0);
-        static uint32_t i,f,o;
-        mfcc_extract((const unsigned int*)golden_adc, features);
+        static uint32_t i,f,o,k;
+        // GUNCELLEME: sabit golden_adc yerine, dongudeki mevcut sinifin
+        // girisi besleniyor -- pipeline'in giris DEGISTIKCE dogru sinifa
+        // gecis yapip yapmadigini (gercek ADC olmadan) test etmek icin.
+        g_expected_class = golden_cycle_idx;
+        mfcc_extract((const unsigned int*)golden_inputs[golden_cycle_idx], features);
 
         int idx = 0;
                 for ( f = 0; f < FEAT_N_FRAMES; f++) {
@@ -430,12 +465,30 @@ int main(void)
 
         GPIO_WritePin(19, 0);
 
-        // GUNCELLEME (GERI ALINDI): CLA_runTest() artik conv1+conv2+FC'nin
-        // TAMAMINI tek CLA gorevinde calistiriyor (bkz. dense_layer.cla) --
-        // CPU burada sonucu (fResult) beklemeden bir sonraki pencereyi
-        // hazirlamaya gecebilir, CLA-CPU senkronizasyonu gerekmez.
+        // Tum inference (conv1+conv2+FC) tek CLA gorevinde -- burada,
+        // sonucu DOGRULAMAK icin bilerek bekliyoruz (cla_done), aksi halde
+        // hangi girisin hangi sonucu urettigini eslestiremeyiz. Bu,
+        // "CPU'yu bir sonraki pencereyi hazirlamak icin serbest birak"
+        // ilkesiyle celismiyor -- gercekten sonuca ihtiyac duydugumuz an
+        // (burada: dogrulama) beklemek dogru olan.
+        cla_done = 0;
         CLA_runTest();
+        while (!cla_done) { /* CLA'nin bitmesini bekle */ }
         GPIO_WritePin(19, 1);
+
+        // argmax(fResult) -> tahmin edilen sinif
+        {
+            uint16_t best_k = 0;
+            for (k = 1; k < NUM_CLASSES; k++) {
+                if (fResult[k] > fResult[best_k]) best_k = k;
+            }
+            g_predicted_class = best_k;
+            g_total_count++;
+            if (g_predicted_class == g_expected_class) g_correct_count++;
+        }
+
+        golden_cycle_idx++;
+        if (golden_cycle_idx >= NUM_CLASSES) golden_cycle_idx = 0;
 
 //        CLA_runTest();
 
@@ -596,6 +649,9 @@ void CLA_initCpu1Cla1(void)
 ////
 __interrupt void cla1Isr1 ()
 {
+    // EKLENDI: Cla1Task1 (conv1+conv2+FC, tamami) bitince buraya dusuluyor --
+    // main loop artik bunu bekleyebiliyor.
+    cla_done = 1;
 
     PieCtrlRegs.PIEACK.all = M_INT11;
 

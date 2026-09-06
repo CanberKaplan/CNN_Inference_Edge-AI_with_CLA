@@ -80,7 +80,9 @@ main.obj: ../convolution.h
 main.obj: C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlib.h
 main.obj: C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlibf.h
 main.obj: ../feature_tables.h
-main.obj: ../golden_vector.h
+main.obj: ../golden_vector_healthy.h
+main.obj: ../golden_vector_bearing.h
+main.obj: ../golden_vector_propeller.h
 main.obj: C:/Users/Canberk_Kaplan/workspace_v12/dense_layer_cla/firmware/include/adc.h
 
 ../main.c:
@@ -243,7 +245,11 @@ C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include/stdlibf.h:
 
 ../feature_tables.h:
 
-../golden_vector.h:
+../golden_vector_healthy.h:
+
+../golden_vector_bearing.h:
+
+../golden_vector_propeller.h:
 
 C:/Users/Canberk_Kaplan/workspace_v12/dense_layer_cla/firmware/include/adc.h:
 
