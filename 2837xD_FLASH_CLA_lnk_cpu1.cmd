@@ -161,7 +161,31 @@ SECTIONS
    #endif
 
    CLADataLS0		: > RAMLS_0_1_2_3_4, PAGE=0
-   CLADataLS1		: > RAMLS_0_1_2_3_4, PAGE=0
+
+   /* DUZELTME (soguk acilis): CLADataLS1, CLA'nin okudugu const ilk degerli
+      agirliklari tutuyor (weight[], conv1/conv2 agirlik+bias, fc_bias). Eskiden
+      sadece RUN adresi (RAM) vardi -- icerigi yalnizca debugger program
+      yuklerken RAM'e yaziyordu, gercek guc verme aninda RAM bos/belirsizdi.
+      Kartta olculdu: RAM silinip 0x80000'den baslatilinca 111 konfigurasyonu
+      tum logitleri 0 uretti (12/36 dogru), agirliklari flash'ta olan 000
+      etkilenmedi. Cla1Prog ile ayni desen: flash'a yukle, acilista
+      CLA_configClaMemory() RAM'e kopyalasin. (CLADataLS0 const olmayan
+      tampondur; ilk degerleri .cinit ile zaten tasiniyor.) */
+   #if defined(__TI_EABI__)
+   		CLADataLS1  : LOAD = FLASHB,
+                      RUN = RAMLS_0_1_2_3_4,
+                      LOAD_START(Cla1DataLoadStart),
+                      RUN_START(Cla1DataRunStart),
+                      LOAD_SIZE(Cla1DataLoadSize),
+                      PAGE = 0, ALIGN(8)
+   #else
+   		CLADataLS1  : LOAD = FLASHB,
+                      RUN = RAMLS_0_1_2_3_4,
+                      LOAD_START(_Cla1DataLoadStart),
+                      RUN_START(_Cla1DataRunStart),
+                      LOAD_SIZE(_Cla1DataLoadSize),
+                      PAGE = 0, ALIGN(8)
+   #endif
 
    Cla1ToCpuMsgRAM  : > CLA1_MSGRAMLOW,   PAGE = 1
    CpuToCla1MsgRAM  : > CLA1_MSGRAMHIGH,  PAGE = 1

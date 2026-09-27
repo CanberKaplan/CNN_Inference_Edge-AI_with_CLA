@@ -17,7 +17,7 @@
 // degismedi.
 #define IMAGE_H              65   // 65 (eskiden 32)
 #define IMAGE_W              12   // 12
-#define NUM_FILTERS          6  // 6
+#define NUM_FILTERS          4  // 6
 #define NUM_CLASSES          3  // Healthy=0, Bearing=1, Propeller=2
 
 #define FILTER_SIZE          3  // 3x3
@@ -70,13 +70,13 @@
 // GUNCELLEME: degerler artik export/dataset__eval_heldout_test/
 // model_weights_int16.h'dan (35 dosyayla egitilmis, 8 dosya gercekten
 // hic gorulmemis, tez icin secilen model -- full.npz'nin DEGIL).
-#define CONV1_WEIGHT_SCALE   85225.6061230335f
-#define CONV1_BIAS_SCALE     82979.7152130700f
+#define CONV1_WEIGHT_SCALE   85931.8558395006f
+#define CONV1_BIAS_SCALE     214816.2626566571f
 
-#define CONV2_WEIGHT_SCALE   163521.1199053864f
-#define CONV2_BIAS_SCALE     235978.0876924510f
+#define CONV2_WEIGHT_SCALE   138716.7796454836f
+#define CONV2_BIAS_SCALE     356554.2466089580f
 
-#define FC_WEIGHT_SCALE      194639.4179048291f
-#define FC_BIAS_SCALE        3044365.3756936355f
+#define FC_WEIGHT_SCALE      281670.4694246628f
+#define FC_BIAS_SCALE        704577.0132013098f
 
 #endif /* DEFINITIONS_H_ */

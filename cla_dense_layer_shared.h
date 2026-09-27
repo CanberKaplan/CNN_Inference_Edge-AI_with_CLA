@@ -126,6 +126,21 @@ extern int16_t workspace[];
 __interrupt void Cla1Task1();
 // GUNCELLEME: Cla1Task2..8 bildirimleri kaldirildi -- tanimlari
 // dense_layer.cla'dan silindi (kullanilmiyorlardi, bkz. oradaki not).
+//
+// GUNCELLEME (asama bazli bolusum): karma CPU/CLA dagiliminda S2 ve S3 kendi
+// gorevlerinde calisiyor (Task2=conv2+pool2, Task3=dense; bkz.
+// cla_pipeline_config.h). Prototipler yalnizca gorev GERCEKTEN derlendiginde
+// bildiriliyor -- bildirilmis ama tanimlanmamis bir gorevin adresi yanlislikla
+// MVECT'e yazilirsa link hatasi yerine derleme hatasi alinsin diye.
+// Bu blok olmadan main.c'deki Cla1Regs.MVECT2/3 atamasi TI derleyicisinde
+// "identifier Cla1Task2 is undefined" (error #20) ile duser.
+#include "cla_pipeline_config.h"
+#if !CLA_SINGLE_TASK && CLA_STAGE_CONV2_POOL2
+__interrupt void Cla1Task2();
+#endif
+#if !CLA_SINGLE_TASK && CLA_STAGE_DENSE
+__interrupt void Cla1Task3();
+#endif
 
 #ifdef __cplusplus
 }

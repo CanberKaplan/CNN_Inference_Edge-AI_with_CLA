@@ -1,0 +1,10 @@
+# Expected g_last_logits per golden class -- "name l0 l1 l2".
+# Produced by running these exact sources on the PC (dense_layer.cla and
+# convolution.c compiled with gcc, TI-only keywords stubbed): all 8 CPU/CLA
+# stage configurations and the single-task Cla1Task1 gave bit-identical
+# values. Firmware state: bias * INPUT_SCALE fix applied, weights.h / main.c
+# weight[] = edge_cnn_int16_6ch.pth (dataset__eval_heldout_test).
+# Regenerate after changing weights, INPUT_SCALE or the kernels.
+Healthy    1979.3040  -1205.1508  -1785.4963
+Bearing    -397.9352   2418.9905  -3126.3438
+Propeller -1147.9872  -2195.0032   2565.1382
