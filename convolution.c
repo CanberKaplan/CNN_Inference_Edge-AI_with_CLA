@@ -346,115 +346,17 @@ void max_pooling_2_int16(int16_t* input, int16_t* output, uint16_t in_h, uint16_
 
 
 // ==========================================================================
-// EKLENDI (asama bazli CLA/CPU bolusumu): asagidaki uc fonksiyon,
-// dense_layer.cla'daki conv1_pool_fused_cla / conv2_pool_fused_cla ve
-// Cla1Task icindeki FC dongusunun BIREBIR portudur -- ayni olcekler, ayni
-// fused pooling sirasi, ayni bias-olcek tasimasi, ayni int16 kirpma. Amac:
-// cla_pipeline_config.h'tan bir asamayi CPU'ya almak sonucu DEGISTIRMESIN
-// (golden_vector testi her kombinasyonda gecerli kalsin).
-// Bir tarafta matematigi degistirirseniz, digerini de ayni sekilde
-// guncelleyin.
+// CPU twins of the CLA stages (conv1+pool1, conv2+pool2, dense).
+//
+// The bodies are no longer written here: they come from fused_kernels_opt.h,
+// the same file dense_layer.cla includes for the CLA versions. One source for
+// both cores, so moving a stage in cla_pipeline_config.h changes where it is
+// computed and nothing else. To change the arithmetic, change it there.
+//
+// The indexed originals these replace are in git history and in
+// firmware_opt_kernels/original/.
 // ==========================================================================
-
-void conv1_pool_fused_cpu(const int16_t* input, int16_t* pooled_out,
-                           const int16_t* filters, const int16_t* bias)
-{
-    uint16_t f, pr, c, fi, fj, sub;
-
-    for (f = 0; f < NUM_FILTERS; f++) {
-        uint32_t filter_offset = f * (FILTER_SIZE * FILTER_SIZE);
-        uint32_t out_offset = f * (POOL1_OUT_H * POOL1_OUT_W);
-
-        for (pr = 0; pr < POOL1_OUT_H; pr++) {
-            for (c = 0; c < CONV1_OUT_W; c++) {
-                int16_t best = -32768;
-
-                for (sub = 0; sub < 2; sub++) {
-                    uint16_t r = pr * 2 + sub;
-                    float sum = 0.0f;
-                    for (fi = 0; fi < FILTER_SIZE; fi++) {
-                        uint32_t row_ptr = (r + fi) * IMAGE_W;
-                        for (fj = 0; fj < FILTER_SIZE; fj++) {
-                            sum += (float)input[row_ptr + (c + fj)] *
-                                   (float)filters[filter_offset + fi*FILTER_SIZE + fj];
-                        }
-                    }
-                    // bias kendi CONV1_BIAS_SCALE'iyle kuantalanmis; toplama
-                    // (CONV1_WEIGHT_SCALE uzayina) tasinarak ekleniyor.
-                    // DUZELTME (bias * INPUT_SCALE): main.c girisi INPUT_SCALE (256) ile
-                    // carpip int16'ya ceviriyor, dolayisiyla TUM aktivasyonlar ag
-                    // boyunca x256 biriminde tasiniyor. Bias da ayni birime
-                    // tasinmazsa cihaz egitilen agi degil, bias'lari ~256 kat
-                    // zayiflatilmis FARKLI bir agi hesapliyor. Olculen (72 ornekli
-                    // held-out set): duzeltmeden once float modelle karar uyumu
-                    // %97.2, logitler ~220x float (%23 sapma); sonra %100, ~255x
-                    // (%0.19 sapma). Sabit, derleme zamaninda katlansin diye
-                    // parantezli -- CLA program RAM'inde (2042/2048) ek komut yok.
-                    sum += (float)bias[f] * ((CONV1_WEIGHT_SCALE / CONV1_BIAS_SCALE) * INPUT_SCALE);
-                    if (sum < 0.0f) sum = 0.0f;              // relu
-                    int16_t val = (int16_t)(sum / CONV1_WEIGHT_SCALE);
-                    if (val > best) best = val;              // 2x1 pool
-                }
-                pooled_out[out_offset + pr*CONV1_OUT_W + c] = best;
-            }
-        }
-    }
-}
-
-
-void conv2_pool_fused_cpu(const int16_t* input, int16_t* pooled_out,
-                           const int16_t* filters, const int16_t* bias)
-{
-    uint16_t out_f, in_c, pr, c, fi, fj, sub;
-
-    for (out_f = 0; out_f < NUM_FILTERS; out_f++) {
-        uint32_t out_offset = out_f * (POOL2_OUT_H * POOL2_OUT_W);
-
-        for (pr = 0; pr < POOL2_OUT_H; pr++) {
-            for (c = 0; c < CONV2_OUT_W; c++) {
-                int16_t best = -32768;
-
-                for (sub = 0; sub < 2; sub++) {
-                    uint16_t r = pr * 2 + sub;
-                    float sum = 0.0f;
-
-                    for (in_c = 0; in_c < NUM_FILTERS; in_c++) {
-                        uint32_t in_offset = (uint32_t)in_c * (POOL1_OUT_H * POOL1_OUT_W);
-                        uint32_t filter_offset = (out_f * NUM_FILTERS * 9) + (in_c * 9);
-
-                        for (fi = 0; fi < 3; fi++) {
-                            uint32_t row_ptr = in_offset + (r + fi) * POOL1_OUT_W;
-                            for (fj = 0; fj < 3; fj++) {
-                                sum += (float)input[row_ptr + (c + fj)] *
-                                       (float)filters[filter_offset + fi*3 + fj];
-                            }
-                        }
-                    }
-                    sum += (float)bias[out_f] * ((CONV2_WEIGHT_SCALE / CONV2_BIAS_SCALE) * INPUT_SCALE);
-                    if (sum < 0.0f) sum = 0.0f;              // relu
-                    int16_t val = (int16_t)(sum / CONV2_WEIGHT_SCALE);
-                    if (val > best) best = val;              // 2x1 pool
-                }
-                pooled_out[out_offset + pr*CONV2_OUT_W + c] = best;
-            }
-        }
-    }
-}
-
-
-void dense_fc_cpu(const int16_t* input, const int16_t* weights,
-                   const int16_t* bias, float* output)
-{
-    uint16_t k;
-    uint32_t i;
-
-    for (k = 0; k < NUM_CLASSES; k++) {
-        float sum = 0.0f;
-        for (i = 0; i < DENSE_LAYER_INPUT; i++) {
-            sum += (float)input[i] * (float)weights[i + k*DENSE_LAYER_INPUT];
-        }
-        // fc_bias kendi FC_BIAS_SCALE'iyle kuantalanmis: W*X toplami once
-        // FC_WEIGHT_SCALE'e bolunuyor, bias gercek (float) uzayda ekleniyor.
-        output[k] = sum / FC_WEIGHT_SCALE + (float)bias[k] * (INPUT_SCALE / FC_BIAS_SCALE);
-    }
-}
+#define KFN_CONV1  conv1_pool_fused_cpu
+#define KFN_CONV2  conv2_pool_fused_cpu
+#define KFN_DENSE  dense_fc_cpu
+#include "fused_kernels_opt.h"

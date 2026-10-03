@@ -17,16 +17,6 @@
 // hic derlenmez, acilan yerle asama basina ayri gorev kullanilir.
 // CLA veri RAM'i (RAMLS_0_1_2_3_4) 10240 byte; CPU'ya alinan
 // asamanin agirlik/tampon kopyasi bu havuzdan cikar.
-//
-// --- ZAMAN BUTCESI (GUI cevrim modeli, olculmus degil) ------------
-// Hedef: TMS320F28379D  (C28x 200 MHz, CLA 200 MHz)
-// Ozellik : 200.00 ms (OLCULEN)
-// MAC basi 133 cevrim (CLA) / 71 (C28x) -- model varsayimi
-// S1   : 40.211 ms  (CLA, 55,800 MAC, 8042 kcevrim) -- diger tarafta 23.669 ms
-// S2   : 131.273 ms  (CLA, 201,600 MAC, 26255 kcevrim) -- diger tarafta 67.549 ms
-// S3   : 1.508 ms  (CLA, 3,360 MAC, 302 kcevrim) -- diger tarafta 0.905 ms
-// Gecikme 372.99 ms, pencere basi 200.00 ms (CLA 172.993 ms'i ortuyor)
-// Features 200.0 ms - inference 172.99 ms - latency 373.0 ms, a new window every 200.0 ms, with 172.99 ms of it overlapped by the CLA.
 #define CLA_STAGE_CONV1_POOL1  1
 #define CLA_STAGE_CONV2_POOL2  1
 #define CLA_STAGE_DENSE        1
