@@ -247,16 +247,13 @@ static const char *const golden_names[NUM_CLASSES] = { "Healthy", "Bearing", "Pr
 // CCS'in Expressions/Watch penceresinden debug sirasinda canli izlemek
 // icin: hangi giris beslendi, model ne tahmin etti, dogru mu.
 volatile uint16_t g_expected_class = 0;
-volatile uint16_t g_predicted_class = 0;
-volatile uint16_t g_correct_count = 0;
-volatile uint16_t g_total_count = 0;
-// EKLENDI (golden vector kart testi): her sinifin EN SON logitleri, sinif
-// indeksine gore. fResult tek bir sinifinkini tutuyor ve dongu hangi anda
-// durdurulursa durdurulsun hangi sinifa ait oldugu belirsiz -- bu dizi o
-// belirsizligi kaldiriyor: g_last_logits[c][k] = sinif c girisinde k logiti.
-// tools/board_golden_test bunu okuyup PC emulasyonunun beklenen degerleriyle
-// karsilastiriyor; Expressions penceresinde elle de bakilabilir. 18 word.
-volatile float g_last_logits[NUM_CLASSES][NUM_CLASSES];
+// KALDIRILDI (paralellik modu): g_predicted_class, g_correct_count,
+// g_total_count ve g_last_logits[][]. Hepsi fResult'i okuyordu; ana dongu
+// artik CLA'yi beklemedigi icin o okuma yaris olurdu. Tanimlarini birakmak
+// daha kotuydu -- hic yazilmadiklari icin Watch penceresinde sonsuza kadar
+// 0 durup modelin hata verdigini dusundururlerdi. Dogrulama isteyen,
+// bekleyen surumu kullanmali (git log: "golden-vector dongusuyle
+// giris-degisimi dogrulamasi"). tools/board_golden_test de o surume bagli.
 
 void mfcc_extract(const unsigned int* adc_buf,
                         float out[FEAT_N_FRAMES][FEAT_N_OUT]);
@@ -426,31 +423,45 @@ int main(void)
                 }
         GPIO_WritePin(18, 1);
 
+        // GPIO19: artik SURE degil, DEVIR TESLIM ANI. Asagida CLA'nin
+        // bitmesini beklemedigimiz icin bu iki kenar arasi yalnizca tetikleme
+        // komutlari kadar (mikrosaniyeler). Inference suresini olcmek icin
+        // GPIO67'ye bakin -- onu Cla1Task1 kendi icinden suruyor.
         GPIO_WritePin(19, 0);
 
-        // Tum inference (conv1+conv2+FC) tek CLA gorevinde -- burada,
-        // sonucu DOGRULAMAK icin bilerek bekliyoruz (cla_done), aksi halde
-        // hangi girisin hangi sonucu urettigini eslestiremeyiz. Bu,
-        // "CPU'yu bir sonraki pencereyi hazirlamak icin serbest birak"
-        // ilkesiyle celismiyor -- gercekten sonuca ihtiyac duydugumuz an
-        // (burada: dogrulama) beklemek dogru olan.
+        // PARALELLIK MODU: CLA tetiklenir ve BEKLENMEZ. CPU dongunun basina
+        // donup bir sonraki pencerenin MFCC'sini hesaplamaya baslar; CLA bu
+        // sirada onceki pencerenin agini isletir. Iki pin ayni anda dusuk
+        // gorunur -- olculmek istenen ortusme budur:
+        //     GPIO18 dusuk = C28x oznitelik cikariyor
+        //     GPIO67 dusuk = CLA inference yapiyor   (Cla1Task1 suruyor)
+        //
+        // BUNUN BEDELI: sonucu kimse beklemediginden fResult'i okumak yaris
+        // olur -- argmax ve dogruluk sayaclari bu yuzden kaldirildi. Bu
+        // yapilandirma ZAMANLAMA gozlemi icindir; dogrulama isteyen, bekleyen
+        // surumu kullanmali (git log: "golden-vector dongusuyle
+        // giris-degisimi dogrulamasi").
+        //
+        // TEK TAMPON, VE NEDEN YETIYOR: CLA ile CPU'nun paylastigi tek
+        // degistirilebilir tampon input_image[]. workspace[] ve fResult[]
+        // yalnizca CLA'nin, agirliklar sabit, ve CPU artik fResult'i
+        // okumuyor.
+        //
+        // input_image[] pencerenin SONUNDA yaziliyor (mfcc_extract bittikten
+        // sonraki int16 donusum dongusu). CLA hemen ardindan tetiklendigi
+        // icin, bir sonraki yazmaya kadar elinde TAM BIR oznitelik cikarma
+        // periyodu var. Kosul bu kadar basit:
+        //
+        //     inference <= oznitelik cikarimi
+        //      34 ms    <= 202 ms        -> 168 ms pay  (4 kanal, olculen)
+        //
+        // Yani eskiden "verimlilik" sanilan esik, tek tamponlu bu tasarimin
+        // DOGRULUK siniri. Asilirsa kod cokmez, hata da vermez: CLA hala
+        // onceki pencereyi okurken CPU ustune yeni pencereyi yazar ve sonuc
+        // sessizce bozulur. O noktada input_image ping-pong tamponlanmali.
         cla_done = 0;
         CLA_runTest();
-        while (!cla_done) { /* CLA'nin bitmesini bekle */ }
         GPIO_WritePin(19, 1);
-
-        // argmax(fResult) -> tahmin edilen sinif
-        {
-            uint16_t best_k = 0;
-            for (k = 1; k < NUM_CLASSES; k++) {
-                if (fResult[k] > fResult[best_k]) best_k = k;
-            }
-            g_predicted_class = best_k;
-            g_total_count++;
-            if (g_predicted_class == g_expected_class) g_correct_count++;
-            for (k = 0; k < NUM_CLASSES; k++)
-                g_last_logits[g_expected_class][k] = fResult[k];
-        }
 
         golden_cycle_idx++;
         if (golden_cycle_idx >= NUM_CLASSES) golden_cycle_idx = 0;
