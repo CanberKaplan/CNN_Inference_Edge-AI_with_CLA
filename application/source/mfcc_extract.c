@@ -72,37 +72,6 @@
 #define MFCC_FAST_LOG 1
 #endif
 
-/*
- * MFCC_RUN_FROM_RAM  0 (default)  code runs from flash, like the rest of the
- *                                 C28x program.
- *                    1            frame_power(), power_db() and
- *                                 mfcc_extract() are placed in .TI.ramfunc:
- *                                 stored in flash, copied to RAMD0 at boot by
- *                                 the existing ramfunc memcpy, and run there.
- * Flash on this device needs 3 wait states at 200 MHz. Prefetch hides most of
- * that for straight-line code but not across taken branches, and these
- * loops branch constantly. RAM has no wait states -- which is also where the
- * CLA's program already runs. About 1000 words; RAMD0 is 2048 with ~100 in
- * use. If the link reports that .TI.ramfunc does not fit, set this back to 0.
- * Has no effect on the results, only on where the code executes.
- */
-#ifndef MFCC_RUN_FROM_RAM
-#define MFCC_RUN_FROM_RAM 1
-#endif
-
-#if MFCC_RUN_FROM_RAM && defined(__TI_COMPILER_VERSION__)
-#pragma CODE_SECTION(frame_power,  ".TI.ramfunc")
-#pragma CODE_SECTION(mfcc_extract, ".TI.ramfunc")
-#if MFCC_FAST_LOG
-#pragma CODE_SECTION(power_db,     ".TI.ramfunc")
-#endif
-static void  frame_power(const unsigned int *s, float mean);
-#if MFCC_FAST_LOG
-static float power_db(float x);
-#endif
-void mfcc_extract(const unsigned int *adc_buf, float out[FEAT_N_FRAMES][FEAT_N_OUT]);
-#endif
-
 static float log_mel[FEAT_N_FRAMES][FEAT_N_MELS];
 
 /* FFT work buffer: FFT_M complex values, interleaved (re, im). After

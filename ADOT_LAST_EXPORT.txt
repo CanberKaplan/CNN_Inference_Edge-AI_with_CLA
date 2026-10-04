@@ -1,6 +1,6 @@
 Bu klasordeki model dosyalari ADOT tarafindan son export'tan kopyalandi -- her egitimde uzerine yazilir.
-tarih   : 2026-10-04 09:25:32
-export  : C:\Users\Canberk_Kaplan\Desktop\Bildiri_SIU_2026\Model_Trainig_For_Edge_AI\export\dataset__eval_heldout_test__fixed9ch__20261004_091939
+tarih   : 2026-10-04 13:01:07
+export  : C:\Users\Canberk_Kaplan\Desktop\Bildiri_SIU_2026\Model_Trainig_For_Edge_AI\export\dataset__eval_heldout_test__fixed12ch__20261004_125551
 dataset : dataset.npz
-kanal   : 9 (sabit, karsilastirma)
-dosyalar: definitions.h, weights.h, main.c, cla_pipeline_config.h, feature_tables.h
+kanal   : 12 (sabit, karsilastirma)
+dosyalar: application/include/definitions.h, application/include/weights.h, main.c, application/include/cla_pipeline_config.h, application/include/feature_tables.h
