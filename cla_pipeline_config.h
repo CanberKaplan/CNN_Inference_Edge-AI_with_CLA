@@ -17,9 +17,9 @@
 // hic derlenmez, acilan yerle asama basina ayri gorev kullanilir.
 // CLA veri RAM'i (RAMLS_0_1_2_3_4) 10240 byte; CPU'ya alinan
 // asamanin agirlik/tampon kopyasi bu havuzdan cikar.
-#define CLA_STAGE_CONV1_POOL1  1
-#define CLA_STAGE_CONV2_POOL2  1
-#define CLA_STAGE_DENSE        1
+#define CLA_STAGE_CONV1_POOL1  0
+#define CLA_STAGE_CONV2_POOL2  0
+#define CLA_STAGE_DENSE        0
 
 // --- turetilmis yardimcilar (elle degistirmeyin) ---------------
 #define CLA_SINGLE_TASK  (CLA_STAGE_CONV1_POOL1 && CLA_STAGE_CONV2_POOL2 && CLA_STAGE_DENSE)
