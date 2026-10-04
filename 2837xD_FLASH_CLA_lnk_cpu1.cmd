@@ -7,7 +7,11 @@
 // by the CLA compiler for local symbols and temps
 // Also force references to the special symbols that mark the
 // scratchpad are.
-CLA_SCRATCHPAD_SIZE = 0x100;
+/* Was 0x100. The CLAscratch output section below is the scratchpad of old
+   CLA compilers; this compiler puts its scratchpad in .scratchpad (48 words
+   in this project) and places nothing in CLAscratch, so the 256 words were
+   a hole in CLA data RAM (see "--HOLE--" under CLAscratch in the map). */
+CLA_SCRATCHPAD_SIZE = 0x0;
 --undef_sym=__cla_scratchpad_end
 --undef_sym=__cla_scratchpad_start
 #endif //CLA_C

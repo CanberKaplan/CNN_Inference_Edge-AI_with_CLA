@@ -64,8 +64,7 @@ extern uint16_t cla_count_param; //input
 extern uint16_t cla_offset_param;
 // GUNCELLEME: fResult[10] (MNIST'in 10 rakami) -> fResult[NUM_CLASSES] (=3).
 extern float fResult[NUM_CLASSES];  //Estimated result
-//extern float input_vector[DENSE_LAYER_INPUT];
-extern int16_t input_vector[DENSE_LAYER_INPUT];
+// input_vector[] removed: unused since the stages were fused (see main.c).
 //extern float weight [DENSE_LAYER_INPUT];
 extern const int16_t weight [DENSE_LAYER_WEIGHTS];
 // EKLENDI: dense/FC katmaninin bias'i -- Cla1Task1 (dense_layer.cla) eskiden
